@@ -4,32 +4,32 @@
 
 A small, tested, no-frills parser of `robots.txt` files in Swift.
 
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fptsochantaris%2Fcan-proceed%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/ptsochantaris/can-proceed) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fptsochantaris%2Fcan-proceed%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/ptsochantaris/can-proceed)
-
 Currently used in
 - [Bloo](https://github.com/ptsochantaris/bloo)
 
-## Usage
+Full docs [can be found here](https://swiftpackageindex.com/ptsochantaris/can-proceed/1.0.0/documentation/canproceed)
 
-Full docs can be found [here](https://swiftpackageindex.com/ptsochantaris/can-proceed/1.0.0/documentation/canproceed)
+## Quick example
 
-A quick example:
 ```
-    let exampleRobotsFileLocation = URL(string: "https://www.bbc.co.uk/robots.txt")!
-    let robotsText = try! Data(contentsOf: exampleRobotsFileLocation)
+let exampleRobotsFileLocation = URL(string: "https://www.bbc.co.uk/robots.txt")!
+let robotsData = try! Data(contentsOf: exampleRobotsFileLocation)
+let robotsText = String(data: robotsData, encoding: .utf8)!
 
-    let check = CanProceed.parse(text)
+let check = CanProceed.parse(robotsText)
 
-    let canProceed = check.agent("ChatGPT-User", canProceedTo: "/news"))
-    
-    guard canProceed else {
-        complain()
-        return
-    }
-    
-    // Also, `check.sitemaps` will contain any sitemaps in the robots.txt file
-    ...
+let shouldProceed = check.agent("ChatGPT-User", canProceedTo: "/news"))
+
+guard shouldProceed else {
+    complain()
+    return
 }
+
+...
+
+check.sitemaps   // contains any sitemaps
+check.crawlDelay // provides any crawl delay setting
+check.sitemps    // contains any XML sitemaps
 ```
 
 ## License

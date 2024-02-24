@@ -5,7 +5,8 @@ A small, tested, no-frills parser of `robots.txt` files in Swift.
 You first need a `String` with the contents of a robots.txt file. For example:
 ```
 let exampleRobotsFileLocation = URL(string: "https://www.bbc.co.uk/robots.txt")!
-let robotsText = try! Data(contentsOf: exampleRobotsFileLocation)
+let robotsData = try! Data(contentsOf: exampleRobotsFileLocation)
+let robotsText = String(data: robotsData, encoding: .utf8)!
 ```
 
 Create an instance of the ``CanProceed`` checker by providing it with that string:
