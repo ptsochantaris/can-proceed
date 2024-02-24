@@ -1,7 +1,6 @@
 import Foundation
 
-/// An instance of the checker. It's much easier to instantiate this via the ``parse(_:)`` static method rather than through its initialiser.
-/// The code was originally derived [from the JS code here](https://github.com/chrisakroyd/robots-txt-parser/blob/master/src/parser.js)
+/// An instance of the checker. Usually instantiated via the ``parse(_:)`` static method rather than through its initialiser.
 public struct CanProceed {
     /// The host for which this check is made.
     public let host: String?
