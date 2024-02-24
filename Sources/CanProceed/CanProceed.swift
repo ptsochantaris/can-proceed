@@ -9,8 +9,8 @@ extension Collection {
     }
 }
 
-struct CanProceed {
-    struct GroupMemberRecord {
+public struct CanProceed {
+    public struct GroupMemberRecord {
         let specificity: Int
         let regex: Regex<Substring>
 
@@ -44,7 +44,7 @@ struct CanProceed {
             return try Regex(pattern, as: Substring.self)
         }
 
-        func matches(_ text: String) -> Bool {
+        public func matches(_ text: String) -> Bool {
             guard let match = text.prefixMatch(of: regex) else {
                 return false
             }
@@ -58,12 +58,12 @@ struct CanProceed {
         }
     }
 
-    struct Agent {
-        let allow = Lista<GroupMemberRecord>()
-        let disallow = Lista<GroupMemberRecord>()
-        var crawlDelay = 0
+    public struct Agent {
+        public let allow = Lista<GroupMemberRecord>()
+        public let disallow = Lista<GroupMemberRecord>()
+        public var crawlDelay = 0
 
-        func canProceedTo(to: String) -> Decision {
+        public func canProceedTo(to: String) -> Decision {
             let allowingRecords = allow.filter { $0.matches(to) }
             let maxAllow = allowingRecords.max { $0.specificity < $1.specificity }
             let disallowingRecords = disallow.filter { $0.matches(to) }
@@ -85,7 +85,7 @@ struct CanProceed {
         }
     }
 
-    enum Decision {
+    public enum Decision {
         case allowed, disallowed, noComment
     }
 
@@ -120,21 +120,21 @@ struct CanProceed {
         }
     }
 
-    let host: String?
-    let sitemaps: Set<String>
-    var agents: [String: Agent]
+    public let host: String?
+    public let sitemaps: Set<String>
+    public var agents: [String: Agent]
 
-    init() {
+    public init() {
         self.init(host: nil, sitemaps: [], agents: [:])
     }
 
-    init(host: String?, sitemaps: Set<String>, agents: [String: Agent]) {
+    public init(host: String?, sitemaps: Set<String>, agents: [String: Agent]) {
         self.host = host
         self.sitemaps = sitemaps
         self.agents = agents
     }
 
-    static func parse(_ rawString: String?) -> CanProceed {
+    public static func parse(_ rawString: String?) -> CanProceed {
         guard let rawString, !rawString.isEmpty else {
             return CanProceed()
         }
@@ -203,15 +203,15 @@ struct CanProceed {
         return CanProceed(host: _host, sitemaps: _sitemaps, agents: _agents)
     }
 
-    func all(agentsNamed agentNames: [String], canProceedTo url: String) -> Bool {
+    public func all(agentsNamed agentNames: [String], canProceedTo url: String) -> Bool {
         agentNames.allSatisfy { agent($0, canProceedTo: url) }
     }
 
-    func some(agentsNamed agentNames: [String], canProceedTo url: String) -> Bool {
+    public func some(agentsNamed agentNames: [String], canProceedTo url: String) -> Bool {
         agentNames.contains { agent($0, canProceedTo: url) }
     }
 
-    func agent(_ agentNameToCheck: String, canProceedTo url: String) -> Bool {
+    public func agent(_ agentNameToCheck: String, canProceedTo url: String) -> Bool {
         guard let path = URL(string: url)?.path else {
             return false
         }
