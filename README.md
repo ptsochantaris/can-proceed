@@ -7,9 +7,11 @@ A `robots.txt` parser in Swift
 Currently used in
 - [Bloo](https://github.com/ptsochantaris/bloo)
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fptsochantaris%2Fcan-proceed%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/ptsochantaris/can-proceed) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fptsochantaris%2Fcan-proceed%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/ptsochantaris/can-proceed)
+
 ## Overview
 
-_Summary and docs coming soon_
+Detailed docs can be found [here](https://swiftpackageindex.com/ptsochantaris/can-proceed/1.0.0/documentation/canproceed)
 
 ## Usage
 
