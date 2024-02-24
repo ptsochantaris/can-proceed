@@ -7,16 +7,16 @@ let package = Package(
     platforms: [
         .macOS(.v13),
         .iOS(.v14),
-        .watchOS(.v7),
+        .watchOS(.v7)
     ],
     products: [
         .library(
             name: "CanProceed",
             targets: ["CanProceed"]
-        ),
+        )
     ],
     dependencies: [
-        .package(url: "https://github.com/ptsochantaris/lista", branch: "main"),
+        .package(url: "https://github.com/ptsochantaris/lista", branch: "main")
     ],
     targets: [
         .target(
@@ -26,6 +26,6 @@ let package = Package(
         .testTarget(
             name: "CanProceedTests",
             dependencies: ["CanProceed"]
-        ),
+        )
     ]
 )

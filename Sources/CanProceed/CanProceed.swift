@@ -1,139 +1,39 @@
 import Foundation
-import Lista
 
-// Based on: https://github.com/chrisakroyd/robots-txt-parser/blob/master/src/parser.js
-
-extension Collection {
-    var isPopulated: Bool {
-        !isEmpty
-    }
-}
-
+/// An instance of the checker. It's much easier to instantiate this via the ``parse(_:)`` static method rather than through its initialiser.
+/// The code was originally derived [from the JS code here](https://github.com/chrisakroyd/robots-txt-parser/blob/master/src/parser.js)
 public struct CanProceed {
-    public struct GroupMemberRecord {
-        let specificity: Int
-        let regex: Regex<Substring>
-
-        init?(_ value: String) {
-            do {
-                regex = try Self.parsePattern(value)
-            } catch {
-                return nil
-            }
-            specificity = value.count
-        }
-
-        init(_ regex: Regex<Substring>, specificity: Int) {
-            self.regex = regex
-            self.specificity = specificity
-        }
-
-        static let regexSpecialChars = #/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/#
-        static let wildCardPattern = #/\*/#
-        static let EOLPattern = #/\\\$$/#
-
-        static func parsePattern(_ pattern: String) throws -> Regex<Substring> {
-            var pattern = pattern
-            for match in pattern.matches(of: regexSpecialChars).reversed() {
-                pattern.replaceSubrange(match.range, with: "\\\(match.output)")
-            }
-            pattern = pattern
-                .replacing(wildCardPattern, with: ".*")
-                .replacing(EOLPattern, with: "$")
-
-            return try Regex(pattern, as: Substring.self)
-        }
-
-        public func matches(_ text: String) -> Bool {
-            guard let match = text.prefixMatch(of: regex) else {
-                return false
-            }
-            if text.count <= match.count || text[match.range].hasSuffix("/") {
-                // rule was either a directory, or the path was a subset of the rule
-                return true
-            }
-            // text was larger, only match if matched text was a directory component of the rule
-            let endOfMatch = text.index(text.startIndex, offsetBy: match.count)
-            return text[endOfMatch] == "/"
-        }
-    }
-
-    public struct Agent {
-        public let allow = Lista<GroupMemberRecord>()
-        public let disallow = Lista<GroupMemberRecord>()
-        public var crawlDelay = 0
-
-        public func canProceedTo(to: String) -> Decision {
-            let allowingRecords = allow.filter { $0.matches(to) }
-            let maxAllow = allowingRecords.max { $0.specificity < $1.specificity }
-            let disallowingRecords = disallow.filter { $0.matches(to) }
-            let maxDisallow = disallowingRecords.max { $0.specificity < $1.specificity }
-
-            if let maxAllow, let maxDisallow {
-                if maxAllow.specificity > maxDisallow.specificity {
-                    return .allowed
-                } else {
-                    return .disallowed
-                }
-            } else if maxDisallow != nil {
-                return .disallowed
-            } else if maxAllow != nil {
-                return .allowed
-            } else {
-                return .noComment
-            }
-        }
-    }
-
-    public enum Decision {
-        case allowed, disallowed, noComment
-    }
-
-    private static func cleanComments(_ text: String) -> String {
-        text.replacing(#/#.*$/#, with: "")
-    }
-
-    private static func cleanSpaces(_ text: String) -> String {
-        text.replacing(" ", with: "")
-    }
-
-    private static func splitOnLines(_ text: String) -> [String] {
-        text.split(separator: #/[\r\n]+/#).map { String($0) }
-    }
-
-    private static func robustSplit(_ text: String) -> [String] {
-        if text.localizedCaseInsensitiveContains("<html>") {
-            []
-        } else {
-            text.matches(of: #/(\w+-)?\w+:\s\S*/#).map { cleanSpaces(String($0.output.0)) }
-        }
-    }
-
-    private static func parseRecord(_ line: String) -> (field: String, value: String)? {
-        if let firstColonI = line.firstIndex(of: ":") {
-            let field = line[line.startIndex ..< firstColonI].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            let afterColon = line.index(after: firstColonI)
-            let value = line[afterColon ..< line.endIndex]
-            return (field: field, value: String(value))
-        } else {
-            return nil
-        }
-    }
-
+    /// The host for which this check is made.
     public let host: String?
+
+    /// The paths of various sitemaps that are specified in the robots file.
     public let sitemaps: Set<String>
+
+    /// The agent sections specified in the robots file.
     public var agents: [String: Agent]
 
+    /// Initialise an empty instance. Useful either for tests or manually parsed data. Prefer the static ``parse(_:)`` method instead.
     public init() {
         self.init(host: nil, sitemaps: [], agents: [:])
     }
 
+    /// Initialise an instance with predefined data. Useful either for tests or manually parsed data. Prefer the static ``parse(_:)`` method instead.
+    ///
+    /// - Parameter host: Optional string with the host of this robots file. Useful for record-keeping, and not used in the parsing logic.
+    /// - Parameter sitemaps: A set of strings referring to sitemap XML URLs.
+    /// - Parameter agents: A dictionary of Agent objects, keyed by the name of each agent.
     public init(host: String?, sitemaps: Set<String>, agents: [String: Agent]) {
         self.host = host
         self.sitemaps = sitemaps
         self.agents = agents
     }
 
+    /// Create a new instance of ``CanProceed`` based on the contents of a robots.txt file
+    ///
+    /// This is the recommended way of creating an insteance of ``CanProceed``. After intialisation, the methods ``agent(_:canProceedTo:)``,
+    /// ``some(agentsNamed:canProceedTo:)``, and ``all(agentsNamed:canProceedTo:)`` can be used to test paths against the loaded rules.
+    ///
+    /// - Parameter rawString: The text contents of a robots.txt file.
     public static func parse(_ rawString: String?) -> CanProceed {
         guard let rawString, !rawString.isEmpty else {
             return CanProceed()
@@ -169,13 +69,13 @@ public struct CanProceed {
                 // https://developers.google.com/webmasters/control-crawl-index/docs/robots_txt#order-of-precedence-for-group-member-records
 
             case "allow" where agent.isPopulated && record.value.isPopulated:
-                if let r = GroupMemberRecord(record.value), let a = _agents[agent] {
+                if let r = try? Agent.GroupMemberRecord(record.value), let a = _agents[agent] {
                     a.allow.append(r)
                     _agents[agent] = a
                 }
 
             case "disallow" where agent.isPopulated && record.value.isPopulated:
-                if let r = GroupMemberRecord(record.value), let a = _agents[agent] {
+                if let r = try? Agent.GroupMemberRecord(record.value), let a = _agents[agent] {
                     a.disallow.append(r)
                     _agents[agent] = a
                 }
@@ -203,14 +103,29 @@ public struct CanProceed {
         return CanProceed(host: _host, sitemaps: _sitemaps, agents: _agents)
     }
 
+    /// Test whether all agents named in the call are allowed down the provided path.
+    ///
+    /// - Parameter agentNames: An array of names of agents to check.
+    /// - Parameter url: The path to test against.
+    /// - Returns: `true` if all agents are allowed to enter the provided path, `false` otherwise.
     public func all(agentsNamed agentNames: [String], canProceedTo url: String) -> Bool {
         agentNames.allSatisfy { agent($0, canProceedTo: url) }
     }
 
+    /// Test whether some of the agents named in the call are allowed down the provided path.
+    ///
+    /// - Parameter agentNames: An array of names of agents to check.
+    /// - Parameter url: The path to test against.
+    /// - Returns: `true` if one or more of the agents are allowed to enter the provided path, `false` otherwise.
     public func some(agentsNamed agentNames: [String], canProceedTo url: String) -> Bool {
         agentNames.contains { agent($0, canProceedTo: url) }
     }
 
+    /// Test whether an agent with the specified name is allowed down the provided path.
+    ///
+    /// - Parameter agentNameToCheck: The name of the agent.
+    /// - Parameter url: The path to test against.
+    /// - Returns: `true` if this agent is allowed to enter the provided path, `false` otherwise.
     public func agent(_ agentNameToCheck: String, canProceedTo url: String) -> Bool {
         guard let path = URL(string: url)?.path else {
             return false
@@ -239,5 +154,36 @@ public struct CanProceed {
         }
 
         return true
+    }
+
+    private static func cleanComments(_ text: String) -> String {
+        text.replacing(#/#.*$/#, with: "")
+    }
+
+    private static func cleanSpaces(_ text: String) -> String {
+        text.replacing(" ", with: "")
+    }
+
+    private static func splitOnLines(_ text: String) -> [String] {
+        text.split(separator: #/[\r\n]+/#).map { String($0) }
+    }
+
+    private static func robustSplit(_ text: String) -> [String] {
+        if text.localizedCaseInsensitiveContains("<html>") {
+            []
+        } else {
+            text.matches(of: #/(\w+-)?\w+:\s\S*/#).map { cleanSpaces(String($0.output.0)) }
+        }
+    }
+
+    private static func parseRecord(_ line: String) -> (field: String, value: String)? {
+        if let firstColonI = line.firstIndex(of: ":") {
+            let field = line[line.startIndex ..< firstColonI].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let afterColon = line.index(after: firstColonI)
+            let value = line[afterColon ..< line.endIndex]
+            return (field: field, value: String(value))
+        } else {
+            return nil
+        }
     }
 }
