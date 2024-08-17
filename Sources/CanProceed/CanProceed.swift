@@ -9,7 +9,7 @@ public struct CanProceed {
     public let sitemaps: Set<String>
 
     /// The agent sections specified in the robots file.
-    public var agents: [String: Agent]
+    public let agents: [String: Agent]
 
     /// Initialise an empty instance. Useful either for tests or manually parsed data. Prefer the static ``parse(_:)`` method instead.
     public init() {
@@ -85,9 +85,8 @@ public struct CanProceed {
 
             case "crawl-delay" where agent.isPopulated:
                 let i = Int(record.value) ?? 1
-                if var a = _agents[agent] {
-                    a.crawlDelay = i
-                    _agents[agent] = a
+                if let a = _agents[agent] {
+                    _agents[agent] = Agent(allow: a.allow, disallow: a.disallow, crawlDelay: i)
                 }
 
             // Non standard but included for completeness.
@@ -100,6 +99,41 @@ public struct CanProceed {
         }
 
         return CanProceed(host: _host, sitemaps: _sitemaps, agents: _agents)
+    }
+
+    /// Create a string representation of this set of checks in the same format as a robots.txt file
+    public func asRobotsTxt() -> String {
+        var text: String = if let host {
+            "Host: \(host)\n\n"
+        } else {
+            ""
+        }
+
+        for sitemap in sitemaps {
+            text.append("Sitemap: \(sitemap)\n")
+        }
+
+        if sitemaps.isPopulated {
+            text.append("\n")
+        }
+
+        for agentEntry in agents {
+            text.append("User-agent: \(agentEntry.key)\n")
+            let agent = agentEntry.value
+            for record in agent.allow {
+                text.append("Allow: \(record.originalRecordString)\n")
+            }
+            for record in agent.disallow {
+                text.append("Disallow: \(record.originalRecordString)\n")
+            }
+            let crawlDelay = agent.crawlDelay
+            if crawlDelay > 0 {
+                text.append("Crawl-delay: \(crawlDelay)\n")
+            }
+            text.append("\n")
+        }
+
+        return text
     }
 
     /// Test whether all agents named in the call are allowed down the provided path.

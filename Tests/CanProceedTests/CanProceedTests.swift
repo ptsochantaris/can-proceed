@@ -39,6 +39,15 @@ final class CanProceedTests: XCTestCase {
     func testPaths() throws {
         let check = CanProceed.parse(text)
 
+        testChecker(check)
+
+        let generated = check.asRobotsTxt()
+
+        let checkGenerated = CanProceed.parse(generated)
+        testChecker(checkGenerated)
+    }
+
+    private func testChecker(_ check: CanProceed) {
         // Check duplicate was discarded
         XCTAssertEqual(check.sitemaps.count, 5)
 

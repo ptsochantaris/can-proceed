@@ -6,8 +6,11 @@ public extension CanProceed.Agent {
         /// The specificity value of the record represented by this item.
         let specificity: Int
 
-        /// The regula expression that is derived from parsing the record.
+        /// The regular expression that is derived from parsing the record.
         let regex: Regex<Substring>
+
+        /// The original record string as read from the source
+        let originalRecordString: String
 
         private static let regexSpecialChars = #/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/#
         private static let wildCardPattern = #/\*/#
@@ -18,6 +21,8 @@ public extension CanProceed.Agent {
         /// - Parameter recordString: A string representing a line from an agent section.
         /// - Throws: If the line cannot be parsed.
         public init(_ recordString: String) throws {
+            originalRecordString = recordString
+
             var recordString = recordString
             for match in recordString.matches(of: Self.regexSpecialChars).reversed() {
                 recordString.replaceSubrange(match.range, with: "\\\(match.output)")
