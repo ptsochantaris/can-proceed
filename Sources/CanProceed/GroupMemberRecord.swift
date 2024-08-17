@@ -10,7 +10,7 @@ public extension CanProceed.Agent {
         let regex: Regex<Substring>
 
         /// The original record string as read from the source
-        let originalRecordString: String
+        public let originalRecordString: String
 
         private static let regexSpecialChars = #/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/#
         private static let wildCardPattern = #/\*/#
