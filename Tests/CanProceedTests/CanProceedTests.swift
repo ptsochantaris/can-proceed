@@ -23,6 +23,15 @@ final class CanProceedTests: XCTestCase {
         Crawl-delay: 89
         Sitemap: http://www.bbc.co.uk/sitemap.xml
 
+        User-agent: RootBot
+        Allow: /$
+        Disallow: /
+        Allow: /specialRoot
+        Disallow: /specialRoot/*
+        Allow: /specialRoot/*/zxc$
+        Disallow: /specialRoot/*/zxc
+        Allow: /specialTree
+
         User-agent: *
         Allow: /news
         Allow: /Testytest
@@ -81,6 +90,20 @@ final class CanProceedTests: XCTestCase {
         XCTAssertTrue(check.agent("MoreBot", canProceedTo: " /news "))
         XCTAssertTrue(check.agent("MoreBot", canProceedTo: "/news "))
         XCTAssertTrue(check.agent("MoreBot", canProceedTo: "news"))
+
+        XCTAssertTrue(check.agent("RootBot", canProceedTo: "/"))
+        XCTAssertFalse(check.agent("RootBot", canProceedTo: "/whatever"))
+        XCTAssertFalse(check.agent("RootBot", canProceedTo: "/whatever/qwe"))
+
+        XCTAssertTrue(check.agent("RootBot", canProceedTo: "/specialRoot"))
+        XCTAssertTrue(check.agent("RootBot", canProceedTo: "/specialRoot/"))
+        XCTAssertFalse(check.agent("RootBot", canProceedTo: "/specialRoot/qwe"))
+        XCTAssertFalse(check.agent("RootBot", canProceedTo: "/specialRoot/qwe/asd"))
+        XCTAssertTrue(check.agent("RootBot", canProceedTo: "/specialRoot/qwe/asd/zxc"))
+        XCTAssertFalse(check.agent("RootBot", canProceedTo: "/specialRoot/qwe/asd/zxc/1"))
+
+        XCTAssertTrue(check.agent("RootBot", canProceedTo: "/specialTree"))
+        XCTAssertTrue(check.agent("RootBot", canProceedTo: "/specialTree/qwe"))
 
         XCTAssertTrue(check.some(agentsNamed: ["MoreBot", "LongBot"], canProceedTo: "/test"))
         XCTAssertFalse(check.all(agentsNamed: ["MoreBot", "LongBot"], canProceedTo: "/test"))
