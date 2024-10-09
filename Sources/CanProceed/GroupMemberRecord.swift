@@ -12,10 +12,6 @@ public extension CanProceed.Agent {
         /// The original record string as read from the source
         public let originalRecordString: String
 
-        private static let regexSpecialChars = #/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/#
-        private static let wildCardPattern = #/\*/#
-        private static let EOLPattern = #/\\\$$/#
-
         /// Initialise a representation of an access control record from a line of text in the robots file.
         ///
         /// - Parameter recordString: A string representing a line from an agent section.
@@ -23,13 +19,17 @@ public extension CanProceed.Agent {
         public init(_ recordString: String) throws {
             originalRecordString = recordString
 
+            let regexSpecialChars = /[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/
+            let wildCardPattern = /\*/
+            let EOLPattern = /\\\$$/
+
             var recordString = recordString
-            for match in recordString.matches(of: Self.regexSpecialChars).reversed() {
+            for match in recordString.matches(of: regexSpecialChars).reversed() {
                 recordString.replaceSubrange(match.range, with: "\\\(match.output)")
             }
             recordString = recordString
-                .replacing(Self.wildCardPattern, with: ".*")
-                .replacing(Self.EOLPattern, with: "$")
+                .replacing(wildCardPattern, with: ".*")
+                .replacing(EOLPattern, with: "$")
 
             regex = try Regex(recordString, as: Substring.self)
             specificity = recordString.count
