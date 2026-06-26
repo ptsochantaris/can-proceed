@@ -1,5 +1,5 @@
 {
-  "originHash" : "3fa6ab22d133d52139a2a8bfa8d49afaa737b06ca4ae1f7b1ada66dc9e79e049",
+  "originHash" : "e6ba3e080a57bbc52f6142bb89a1c248a0f574bfdc7e56c321db56de4720aab5",
   "pins" : [
     {
       "identity" : "lista",
@@ -7,7 +7,7 @@
       "location" : "https://github.com/ptsochantaris/lista",
       "state" : {
         "branch" : "main",
-        "revision" : "c11f05c3ba6c56c1eecb09663815408d3b11771a"
+        "revision" : "56e6a46113f48e5db6b76997ec2c828f14df52d7"
       }
     }
   ],

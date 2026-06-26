@@ -1,13 +1,15 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.3
 
 import PackageDescription
 
 let package = Package(
     name: "CanProceed",
     platforms: [
-        .macOS(.v13),
-        .iOS(.v16),
-        .watchOS(.v7)
+        .macOS(.v15),
+        .iOS(.v18),
+        .tvOS(.v18),
+        .watchOS(.v11),
+        .visionOS(.v2)
     ],
     products: [
         .library(
